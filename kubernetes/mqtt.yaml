@@ -25,6 +25,9 @@ spec:
             - name: mosquitto-config
               mountPath: /mosquitto/config/mosquitto.conf
               subPath: mosquitto.conf
+            - name: mosquitto-passwd
+              mountPath: /mosquitto/config/passwd
+              subPath: passwd
       volumes:
         - name: mosquitto-config
           configMap:
@@ -47,6 +50,8 @@ kind: ConfigMap
 metadata:
   name: mosquitto-config
 data:
+  passwd: |-
+    remote1:$7$101$38qQjbWUpL88Rc8y$a178yF8D02StUDGG4xzabEHyyzOWsgAhhjo3DxvvHYZzaLdBxMsNuDcHau8I3F0RYhf/Qcr91ZB93dMYClWJVQ==
   mosquitto.conf: |-
     # Ip/hostname to listen to.
     # If not given, will listen on all interfaces
@@ -57,9 +62,9 @@ data:
 
     # Allow anonymous users to connect?
     # If not, the password file should be created
-    allow_anonymous true
+    allow_anonymous false
 
     # The password file.
     # Use the `mosquitto_passwd` utility.
     # If TLS is not compiled, plaintext "username:password" lines bay be used
-    # password_file /mosquitto/config/passwd
+    password_file /mosquitto/config/passwd
