@@ -25,7 +25,7 @@ spec:
             - name: mosquitto-config
               mountPath: /mosquitto/config/mosquitto.conf
               subPath: mosquitto.conf
-            - name: mosquitto-passwd
+            - name: mosquitto-config
               mountPath: /mosquitto/config/passwd
               subPath: passwd
       volumes:
