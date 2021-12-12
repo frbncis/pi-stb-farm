@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 from bluetoothctl import Bluetoothctl
-import argparseUtils
+import utils
 import argparse
 import evdev
 import logging
@@ -17,10 +17,7 @@ parser._action_groups.pop()
 required = parser.add_argument_group('required arguments')
 optional = parser.add_argument_group('optional arguments')
 
-argparseUtils.add_mqtt_arguments(required)
-#required.add_argument('--mqtt-host', help='MQTT Host', required=True)
-#required.add_argument('--mqtt-user', help='MQTT User', required=True)
-#required.add_argument('--mqtt-password', help='MQTT Password', required=True)
+utils.add_mqtt_arguments(required)
 
 optional.add_argument('--device-timeout', type=int, default=500, help='Specifies the idle timeout for the remote. When this timeout is exceeded, the Bluetooth connection will be disconnected')
 parser.add_argument('physical_address', help='The device physical address, as picked up by evdev. To find out the address for your device, run "python3 -m evdev.evtest"')
@@ -28,7 +25,8 @@ parser.add_argument('bluetooth_address', help='The device Bluetooth address. Thi
 
 args = parser.parse_args()
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p')
+utils.configure_logging(logging)
+#logging.basicConfig(level=logging.INFO, format='%(asctime)s %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p')
 
 bluetoothctl = Bluetoothctl()
 lastInputTimestamp = None
