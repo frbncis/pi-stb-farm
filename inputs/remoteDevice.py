@@ -21,7 +21,7 @@ required.add_argument('--mqtt-host', help='MQTT Host', required=True)
 required.add_argument('--mqtt-user', help='MQTT User', required=True)
 required.add_argument('--mqtt-password', help='MQTT Password', required=True)
 
-optional.add_argument('--device-timeout', default=500, help='Specifies the idle timeout for the remote. When this timeout is exceeded, the Bluetooth connection will be disconnected')
+optional.add_argument('--device-timeout', type=int, default=500, help='Specifies the idle timeout for the remote. When this timeout is exceeded, the Bluetooth connection will be disconnected')
 parser.add_argument('physical_address', help='The device physical address, as picked up by evdev. To find out the address for your device, run "python3 -m evdev.evtest"')
 parser.add_argument('bluetooth_address', help='The device Bluetooth address. This is the one reported by bluetoothctl')
 
@@ -50,8 +50,9 @@ while True:
             logging.info(f'Connected to remote: {device.path}, {device.name}, {device.phys}')
             remote = device
             lastInputTimestamp = datetime.now()
+            client.publish(f'{mqtt_topic}/state/connected', payload=1, retain=True)
             break
-
+    
     if remote is None:
         logging.debug("Could not find remote, sleeping...")
         time.sleep(2)
@@ -59,21 +60,24 @@ while True:
         try:
             while True:
                 inputEvent = remote.read_one()
-
+    
                 if inputEvent != None:
                     lastInputTimestamp = datetime.now()
                     if inputEvent.type == evdev.ecodes.EV_KEY:
                         logging.info(evdev.categorize(inputEvent))
-                        client.publish(f'{mqtt_topic}/{inputEvent.code}', inputEvent.value)
+                        client.publish(f'{mqtt_topic}/key/{inputEvent.code}', payload=inputEvent.value, retain=True)
                 else:
                     idleTime = datetime.now() - lastInputTimestamp
 
-                    # idleTime is a datetime.timedelta in microseconds
+                    # idelTime is a datetime.timedelta in microseconds
                     if idleTime > maximumIdleTime:
                         logging.info(f'idleTime {idleTime} exceeds maximumIdleTime {maximumIdleTime}, preparing to disconnect')
                         bluetoothctl.disconnect(args.bluetooth_address)
-                        logging.info('Disconnected from remote')
+                        logging.info('Disconnected!!!')
+                        client.publish(f'{mqtt_topic}/state/connected', 0)
+                        break
 
         except Exception as e:
             logging.info('Disconnected from remote')
+            client.publish(f'{mqtt_topic}/state/connected', 0)
             logging.info(e)
